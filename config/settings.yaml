@@ -1,0 +1,109 @@
+# Modular RAG MCP Server - Configuration
+# This is the main configuration file for the MCP Server.
+# Edit this file to configure LLM, Embedding, VectorStore, and other services.
+
+# =============================================================================
+# LLM Configuration
+# =============================================================================
+llm:
+  provider: "mimo"  # Xiaomi MiMo OpenAI-compatible API
+  model: "mimo-v2.5-pro"
+  base_url: ""  # Optional; set MIMO_BASE_URL for Token Plan-specific endpoint
+  temperature: 1.0
+  max_tokens: 8192
+
+# =============================================================================
+# Embedding Configuration
+# =============================================================================
+embedding:
+  provider: "ollama"  # MiMo has no embedding API; use local Ollama
+  model: "qwen3-embedding"
+  dimensions: 4096
+  base_url: "http://localhost:11434"
+
+# =============================================================================
+# Vision LLM Configuration (for Image Captioning)
+# =============================================================================
+vision_llm:
+  enabled: true  # Set to true to enable vision capabilities
+  provider: "mimo"
+  model: "mimo-v2.5"
+  base_url: ""
+  timeout: 120
+  max_image_size: 2048  # Max dimension (width/height) for image compression
+
+# =============================================================================
+# Vector Store Configuration
+# =============================================================================
+vector_store:
+  provider: "chroma"  # Options: chroma, qdrant, pinecone
+  persist_directory: "./data/db/chroma"
+  collection_name: "knowledge_hub"
+
+# =============================================================================
+# Retrieval Configuration
+# =============================================================================
+retrieval:
+  dense_top_k: 20
+  sparse_top_k: 20
+  fusion_top_k: 10
+  rrf_k: 60  # RRF constant
+
+# =============================================================================
+# Rerank Configuration
+# =============================================================================
+rerank:
+  enabled: true
+  provider: "llm"  # Reuse MiMo; local cross_encoder is also supported
+  model: "mimo-v2.5-pro"
+  top_k: 5
+
+# =============================================================================
+# Evaluation Configuration
+# =============================================================================
+evaluation:
+  enabled: false
+  provider: "custom"  # Options: ragas, deepeval, custom
+  metrics:
+    - "hit_rate"
+    - "mrr"
+    - "faithfulness"
+
+# =============================================================================
+# Observability Configuration
+# =============================================================================
+observability:
+  log_level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR
+  trace_enabled: true
+  trace_file: "./logs/traces.jsonl"
+  structured_logging: true
+
+# =============================================================================
+# PDF Loader Configuration
+# =============================================================================
+pdf_loader:
+  backend: "markitdown"  # Local PDF parsing; no API key required
+
+# =============================================================================
+# Ingestion Configuration
+# =============================================================================
+ingestion:
+  chunk_size: 1500
+  chunk_overlap: 200
+  splitter: "financial"  # Options: recursive, semantic, fixed_length, financial
+  batch_size: 100
+
+  # Financial Splitter Configuration (v2 context-aware splitting)
+  financial_splitter:
+    context_max_length: 150   # Max chars for section-context prefix prepended to each chunk
+    table_context: true       # Prepend section headings to table chunks for retrieval
+  
+  # Chunk Refiner Configuration (C5)
+  chunk_refiner:
+    use_llm: false  # Set to true to enable LLM-based refinement (requires LLM config)
+    # When use_llm is false or LLM call fails, falls back to rule-based refinement
+  
+  # Metadata Enricher Configuration (C6)
+  metadata_enricher:
+    use_llm: false  # Set to true to enable LLM-based enrichment (requires LLM config)
+    # When use_llm is false or LLM call fails, falls back to rule-based enrichment

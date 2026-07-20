@@ -1,0 +1,7 @@
+# Settings override for Chinese financial-report ingestion
+
+ingestion:
+  chunk_size: 1500
+  chunk_overlap: 250
+  splitter: "financial"
+
